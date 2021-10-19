@@ -99,7 +99,6 @@ export const Form: React.FC = () => {
   const [flatsCount, setFlatsCount] = useState('');
 
   const disableCheck = !email || !flatsCount || !firstName || !phone || !lastName;
-  const time = Date.now();
 
   const validNumberName = (value: number, words: string[]) => {
     const newValue = Math.abs(value) % 100;
@@ -112,6 +111,7 @@ export const Form: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const time = Date.now();
     console.log({
       user: {
         firstName, lastName, email, phone,
