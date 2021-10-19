@@ -1,16 +1,18 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider } from 'styled-components';
 
+import GlobalStyle from './styles/Global';
+import theme from './styles/theme';
 import App from './App';
+import './index.css';
 
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Suspense fallback={<div>Loading...</div>}>
-        <App />
-      </Suspense>
-    </BrowserRouter>
+    <ThemeProvider theme={theme}>
+      <GlobalStyle />
+      <App />
+    </ThemeProvider>
   </React.StrictMode>,
   document.getElementById('root'),
 );
