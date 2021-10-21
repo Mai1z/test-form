@@ -33,7 +33,7 @@ const FormBlock = styled.div`
   border-radius: 8px;
   width: 100%;
   max-width: 544px;
-  height: 648px;
+  min-height: 648px;
   padding: 56px 56px 32px;
   @media (max-width: 768px) {
     max-width: 100%;

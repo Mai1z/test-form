@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import NumberFormat from 'react-number-format';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 
 const BookingForm = styled.form`
   display: flex;
@@ -47,7 +48,6 @@ const InputBlock = styled.div`
     width: 100%;
     font-size: 16px;
     line-height: 24px;
-    margin-bottom: 24px;
     color: ${({ theme }) => theme.grayDark};
     text-overflow: ellipsis;
     &:-webkit-autofill {
@@ -64,6 +64,23 @@ const InputBlock = styled.div`
     &::placeholder {
       color: ${({ theme }) => theme.grayDark};
       opacity: 1;
+    }
+  }
+  p {
+    font-size: 11px;
+    line-height: 14px;
+    text-align: right;
+    color: ${({ theme }) => theme.statusError};
+  }
+  p ~ input {
+    border: 2px solid ${({ theme }) => theme.statusError};
+    &:placeholder-shown {
+      border: 2px solid ${({ theme }) => theme.statusError};
+      color: ${({ theme }) => theme.statusError};
+      background: ${({ theme }) => theme.statusErrorBg};
+    }
+    &::placeholder {
+      color: ${({ theme }) => theme.statusError};
     }
   }
 `;
@@ -91,14 +108,26 @@ const Button = styled.button`
   }
 `;
 
-export const Form: React.FC = () => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [flatsCount, setFlatsCount] = useState('');
+const InputWrapper = styled.div`
+  display: flex;
+  flex-direction: column-reverse;
+  margin-bottom: 24px;
+`;
 
-  const disableCheck = !email || !flatsCount || !firstName || !phone || !lastName;
+type Inputs = {
+  firstName: string,
+  lastName: string,
+  phone: string,
+  email: string,
+  flatsCount: number
+};
+
+export const Form: React.FC = () => {
+  const {
+    register, handleSubmit, watch, control, formState: { errors },
+  } = useForm<Inputs>();
+  const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data);
+  const [flatsCount, setFlatsCount] = useState(0);
 
   const validNumberName = (value: number, words: string[]) => {
     const newValue = Math.abs(value) % 100;
@@ -109,73 +138,99 @@ export const Form: React.FC = () => {
     return words[2];
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const time = Date.now();
-    console.log({
-      user: {
-        firstName, lastName, email, phone,
-      },
-      order: { flatsCount, time },
-    });
+  const watchFlatsCount = watch('flatsCount');
+
+  useEffect(() => {
+    setFlatsCount(watchFlatsCount);
+  }, [watchFlatsCount]);
+
+  const clearTel = (tel: string) => tel.replace(/[^0-9]/g, '');
+
+  const isNotFilledTel = (v: string) => {
+    const clearedTel = clearTel(v);
+    return clearedTel.length >= 11;
   };
 
   return (
-    <BookingForm onSubmit={handleSubmit}>
+    <BookingForm onSubmit={handleSubmit(onSubmit)}>
       <Wrapper>
         <InputBlock>
-          <input
-            type="text"
-            placeholder="Ваше имя"
-            id="firstName"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-          />
-          <label htmlFor="name">Имя</label>
+          <InputWrapper>
+            {errors.firstName && <p>Заполните поле</p>}
+            <input
+              placeholder="Ваше имя"
+              id="firstName"
+              {...register('firstName', { required: true })}
+            />
+            <label htmlFor="name">Имя</label>
+          </InputWrapper>
         </InputBlock>
         <InputBlock>
-          <input
-            type="text"
-            placeholder="Ваша фамилия"
-            id="lastName"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-          />
-          <label htmlFor="surname">Фамилия</label>
+          <InputWrapper>
+            {errors.lastName && <p>Заполните поле</p>}
+            <input
+              placeholder="Ваша фамилия"
+              id="lastName"
+              {...register('lastName', { required: true })}
+            />
+            <label htmlFor="surname">Фамилия</label>
+          </InputWrapper>
         </InputBlock>
       </Wrapper>
       <InputBlock>
-        <input
-          type="text"
-          placeholder="Телефон"
-          id="phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-        <label htmlFor="phone">Телефон</label>
+        <InputWrapper>
+          {errors.phone && <p>Заполните поле</p>}
+          <Controller
+            control={control}
+            name="phone"
+            rules={{ required: true, validate: { inputTelRequired: isNotFilledTel } }}
+            render={({ field: { onChange, name, value } }) => (
+              <NumberFormat
+                name={name}
+                placeholder="Телефон"
+                format="+7 (###) ###-##-##"
+                mask="_"
+                value={value}
+                onChange={onChange}
+              />
+            )}
+          />
+          <label htmlFor="phone">Телефон</label>
+        </InputWrapper>
       </InputBlock>
       <InputBlock>
-        <input
-          type="text"
-          placeholder="E-mail"
-          id="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <label htmlFor="email">E-mail</label>
+        <InputWrapper>
+          {errors.email && <p>Заполните поле</p>}
+          <input
+            placeholder="E-mail"
+            id="email"
+            {...register('email', { required: true, pattern: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/ })}
+          />
+          <label htmlFor="email">E-mail</label>
+        </InputWrapper>
       </InputBlock>
       <InputBlock>
-        <NumberFormat
-          placeholder="Количество помещений"
-          id="rooms"
-          allowNegative={false}
-          decimalScale={0}
-          value={flatsCount}
-          onChange={(e) => setFlatsCount(e.target.value)}
-        />
-        <label htmlFor="rooms">Количество помещений</label>
+        <InputWrapper>
+          {errors.flatsCount && <p>Заполните поле</p>}
+          <Controller
+            control={control}
+            name="flatsCount"
+            rules={{ required: true }}
+            render={({ field: { onChange, name, value } }) => (
+              <NumberFormat
+                name={name}
+                placeholder="Количество комнат"
+                value={value}
+                allowNegative={false}
+                decimalScale={0}
+                onChange={onChange}
+              />
+            )}
+          />
+          <label htmlFor="flatsCount">Количество помещений</label>
+        </InputWrapper>
       </InputBlock>
-      <Button type="submit" disabled={disableCheck}>Забронировать {flatsCount} {flatsCount && validNumberName(Number(flatsCount), ['помещение', 'помещения', 'помещений'])} </Button>
+      <Button type="submit">Забронировать {flatsCount} {flatsCount && validNumberName(Number(flatsCount), ['помещение', 'помещения', 'помещений'])} </Button>
     </BookingForm>
   );
 };

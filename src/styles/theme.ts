@@ -8,6 +8,7 @@ const defaultTheme = {
   primaryDark: '#F72F00',
   primaryExtraDark: '#DC2A00',
   statusError: '#E64646',
+  statusErrorBg: '#F6E4E4',
   secondaryMedium: '#969BA5',
   secondaryLight: '#DCDCE6',
   secondaryExtraLight: '#F2F4F7',
