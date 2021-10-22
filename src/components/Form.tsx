@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import NumberFormat from 'react-number-format';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { fetchForm } from '../redux/ActionsCreator';
+import { formSlice } from '../redux/reducers/FormSlice';
+import { RootState } from '../redux/store';
+import { Loader } from './Loader';
 
 const BookingForm = styled.form`
   display: flex;
@@ -85,7 +91,9 @@ const InputBlock = styled.div`
   }
 `;
 
-const Button = styled.button`
+const Button = styled.button<{ loading: boolean }>`
+  display: flex;
+  justify-content: center;
   border-radius: 4px;
   padding: 18px 40px;
   width: 100%;
@@ -93,7 +101,7 @@ const Button = styled.button`
   line-height: 20px;
   border: none;
   color: ${({ theme }) => theme.white};
-  background: ${({ theme }) => theme.primary};
+  background: ${({ loading, theme }) => (!loading ? theme.primary : theme.primaryExtraDark)};
   cursor: pointer;
   &:hover {
     background: ${({ theme }) => theme.primaryDark};
@@ -126,7 +134,30 @@ export const Form: React.FC = () => {
   const {
     register, handleSubmit, watch, control, formState: { errors },
   } = useForm<Inputs>();
-  const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data);
+  const { loading } = useSelector((state: RootState) => state.formReducer);
+
+  const { addData } = formSlice.actions;
+  const dispatch = useDispatch();
+
+  const onSubmit: SubmitHandler<Inputs> = (data) => {
+    const time = Date.now();
+    const formData = {
+      user: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+      },
+      order: {
+        flatsCount: data.flatsCount,
+        time,
+      },
+    };
+
+    dispatch(fetchForm(formData));
+    dispatch(addData(data));
+    console.log(data);
+  };
   const [flatsCount, setFlatsCount] = useState(0);
 
   const validNumberName = (value: number, words: string[]) => {
@@ -230,7 +261,13 @@ export const Form: React.FC = () => {
           <label htmlFor="flatsCount">Количество помещений</label>
         </InputWrapper>
       </InputBlock>
-      <Button type="submit">Забронировать {flatsCount} {flatsCount && validNumberName(Number(flatsCount), ['помещение', 'помещения', 'помещений'])} </Button>
+      <Button type="submit" loading={loading}>
+        {
+          loading
+            ? <Loader />
+            : <>Забронировать {flatsCount} {flatsCount && validNumberName(Number(flatsCount), ['помещение', 'помещения', 'помещений'])}</>
+        }
+      </Button>
     </BookingForm>
   );
 };

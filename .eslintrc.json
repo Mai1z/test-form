@@ -40,6 +40,7 @@
   "rules": {
     "no-console": "off",
     "no-debugger": "off",
+    "no-param-reassign": 0,
     "import/no-extraneous-dependencies": "off",
     "import/prefer-default-export": "off",
     "import/order": [
@@ -86,7 +87,6 @@
     "react/jsx-props-no-spreading": "off",
 
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn",
 
     "jsx-a11y/anchor-is-valid": "off",
     "jsx-a11y/label-has-associated-control": ["error", {
